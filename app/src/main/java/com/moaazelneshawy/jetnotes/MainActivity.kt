@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.moaazelneshawy.jetnotes.composables.AppDarkTheme
 import com.moaazelneshawy.jetnotes.composables.AppDrawerHeader
@@ -43,28 +44,28 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val scope = rememberCoroutineScope()
             val scaffoldState = rememberScaffoldState()
-            val drawerState = scaffoldState.drawerState
+            val navBackStackEntry
+                    by navController.currentBackStackEntryAsState()
             JetNotesTheme {
                 Scaffold(
                     scaffoldState = scaffoldState,
                     drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
-                    topBar = { AppDrawerHeader { scope.launch { drawerState.open() } } },
                     drawerContent = {
                             Column {
                                 AppDrawerItem(
                                     Icons.Default.Home,
                                     "Home",
-                                    navController.currentDestination?.route == Screens.Notes.routeName
+                                    navBackStackEntry?.destination?.route == Screens.Notes.routeName
                                 ) {
                                     navController.navigate(Screens.Notes.routeName)
-                                    scope.launch { drawerState.close() }
+                                    scope.launch { scaffoldState.drawerState.close() }
                                 }
                                 AppDrawerItem(
                                     Icons.Default.Delete,
                                     "Trash",
-                                    navController.currentDestination?.route == Screens.Trash.routeName
+                                    navBackStackEntry?.destination?.route == Screens.Trash.routeName
                                 ) {
-                                    scope.launch { drawerState.close() }
+                                    scope.launch { scaffoldState.drawerState.close() }
                                     navController.navigate(Screens.Trash.routeName)
                                 }
                                 Spacer(modifier = Modifier.height(7.dp))
@@ -79,19 +80,13 @@ class MainActivity : ComponentActivity() {
                             }
                     }
                 ) {
-                    CAppNavigation(navController, viewModel)
+                    CAppNavigation(navController, viewModel) {
+                        scope.launch {
+                            scaffoldState.drawerState.open()
+                        }
+                    }
                 }
             }
         }
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    JetNotesTheme {
-
-    }
-
 }

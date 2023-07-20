@@ -6,6 +6,7 @@ sealed class Screens(val routeName: String) {
         private const val ROUTE_TRASH = "trash"
         private const val ROUTE_NOTE_INFO = "info"
         const val NOTE_MODEL = "noteModel"
+        const val IS_NEW = "isNew"
     }
 
     object Notes : Screens(ROUTE_NOTES)

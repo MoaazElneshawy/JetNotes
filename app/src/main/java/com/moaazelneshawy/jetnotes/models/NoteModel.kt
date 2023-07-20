@@ -10,7 +10,7 @@ data class NoteModel(
     @ColumnInfo(name = "title") val title: String?,
     @ColumnInfo(name = "content") val content: String?,
     @ColumnInfo(name = "color") val color: Int?,
-    @ColumnInfo(name = "isClickable") val isClickable: Boolean? = false,
+    @ColumnInfo(name = "isChecked") val isChecked: Boolean? = false,
     @ColumnInfo(name = "isDeleted") val isDeleted: Boolean? = false,
     @PrimaryKey(autoGenerate = true) val id: Long? = null
 

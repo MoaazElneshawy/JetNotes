@@ -21,6 +21,76 @@ import com.moaazelneshawy.jetnotes.R
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun CNotesInfo(noteModel: String? = null, viewModel: MainViewModel, navigateBack: () -> Unit) {
-   
+fun CNotesInfo(
+    isNew: Boolean,
+    noteModel: String? = null,
+    viewModel: MainViewModel,
+    navigateBack: () -> Unit
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            SaveNotesAppBar(
+                isNew = isNew,
+                onNavigationIconClicked = navigateBack::invoke,
+                onSave = { },
+                onChooseColor = { },
+                onDeleteNote = {})
+        }
+    ) {
+        Text(text = "$noteModel")
+    }
+}
+
+@Composable
+fun SaveNotesAppBar(
+    isNew: Boolean,
+    onNavigationIconClicked: () -> Unit,
+    onSave: () -> Unit,
+    onChooseColor: () -> Unit,
+    onDeleteNote: () -> Unit
+) {
+    TopAppBar(
+        modifier = Modifier.fillMaxWidth(),
+        backgroundColor = MaterialTheme.colors.primary,
+        title = {
+            Text(
+                text = if (isNew) "Create Note" else "Edit Note",
+                color = MaterialTheme.colors.onPrimary
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = { onNavigationIconClicked.invoke() }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "back",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = { onSave.invoke() }) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "save",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
+            IconButton(onClick = { onChooseColor.invoke() }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_color_lens_24),
+                    contentDescription = "save",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
+            IconButton(onClick = { onDeleteNote.invoke() }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "save",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
+
+        }
+    )
 }

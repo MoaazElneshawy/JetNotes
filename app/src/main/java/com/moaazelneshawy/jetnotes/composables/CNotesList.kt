@@ -26,18 +26,22 @@ import com.moaazelneshawy.jetnotes.MainViewModel
 import com.moaazelneshawy.jetnotes.models.NoteModel
 import com.moaazelneshawy.jetnotes.routes.Screens
 import com.moaazelneshawy.jetnotes.toJson
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun CNotesScreen(navController: NavController, viewModel: MainViewModel) {
+fun CNotesScreen(navController: NavController, viewModel: MainViewModel,openNavigationDrawer:()->Unit) {
+
     val notes = viewModel.getAllNotes(false).collectAsState(initial = listOf())
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        topBar = { AppDrawerHeader { openNavigationDrawer.invoke() } },
+
         floatingActionButton = {
             FloatingActionButton(
                 elevation = FloatingActionButtonDefaults.elevation(10.dp),
                 onClick = {
-                    navController.navigate(Screens.NoteInfo.withArg("non2"))
+                    navController.navigate(Screens.NoteInfo.withArg(true,"asd"))
                 }) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -54,7 +58,7 @@ fun CNotesScreen(navController: NavController, viewModel: MainViewModel) {
                     .fillMaxSize()
             ) {
                 Text(
-                    text = "No Notes exists",
+                    text = "No Notes exist",
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -66,8 +70,7 @@ fun CNotesScreen(navController: NavController, viewModel: MainViewModel) {
                             NoteModel(it.title, it.content, it.color, isDeleted = true, id = it.id)
                         viewModel.updateNote(updatedNote)
                     }, modifier = Modifier.clickable {
-                        val route = Screens.NoteInfo.withArg(note.toJson() ?: "non")
-                        Log.e("CNotesScreen: ", route)
+                        val route = Screens.NoteInfo.withArg(false,note.toJson() ?: "non")
                         navController.navigate(route)
                     })
                 }
