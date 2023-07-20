@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moaazelneshawy.jetnotes.models.ColorModel
 import com.moaazelneshawy.jetnotes.models.NoteModel
 
 @Composable
@@ -34,7 +35,11 @@ fun CNote(modifier: Modifier = Modifier, note: NoteModel, onCheck: (NoteModel) -
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
-        CNoteColor(size = 40.dp, borderWidth = 1.dp, color = note.color!!)
+        CNoteColor(
+            size = 40.dp,
+            borderWidth = 1.dp,
+            color = note.color ?: ColorModel.YELLOW
+        )
 
         Column(
             Modifier

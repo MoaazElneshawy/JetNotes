@@ -35,7 +35,7 @@ fun CColorIem(
         CNoteColor(
             size = 40.dp,
             borderWidth = 1.dp,
-            color = model.color,
+            color = model,
             modifier = contentModifier.padding(end = 20.dp)
         )
         Text(text = model.colorName, fontSize = 13.sp)

@@ -13,15 +13,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.moaazelneshawy.jetnotes.models.ColorModel
 
 @Composable
-fun CNoteColor(modifier: Modifier = Modifier, size: Dp, borderWidth: Dp, color: Int) {
+fun CNoteColor(modifier: Modifier = Modifier, size: Dp, borderWidth: Dp = 1.dp, color: ColorModel) {
     Box(
         modifier = modifier
             .padding(vertical = 10.dp)
             .size(size)
             .clip(CircleShape)
-            .background(color = Color(color))
+            .background(color = Color(color.color))
             .border(border = BorderStroke(borderWidth, Color.Black), shape = CircleShape)
     )
 }

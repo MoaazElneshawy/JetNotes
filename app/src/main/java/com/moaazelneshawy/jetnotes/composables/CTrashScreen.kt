@@ -35,21 +35,7 @@ fun CTrashScreen(navController: NavController, viewModel: MainViewModel,openNavi
     val notes = viewModel.getAllNotes(true).collectAsState(initial = listOf())
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { AppDrawerHeader { openNavigationDrawer.invoke() } },
-        floatingActionButton = {
-            FloatingActionButton(
-                elevation = FloatingActionButtonDefaults.elevation(10.dp),
-                onClick = {
-                    navController.navigate(Screens.NoteInfo.withArg("non2"))
-                }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "add new",
-                    tint = Color.White
-                )
-            }
-        },
-        floatingActionButtonPosition = FabPosition.End
+        topBar = { AppDrawerHeader { openNavigationDrawer.invoke() } }
     ) {
         if (notes.value.isEmpty())
             Box(
@@ -69,7 +55,7 @@ fun CTrashScreen(navController: NavController, viewModel: MainViewModel,openNavi
                             NoteModel(it.title, it.content, it.color, isDeleted = true, id = it.id)
                         viewModel.updateNote(updatedNote)
                     }, modifier = Modifier.clickable {
-                        val route = Screens.NoteInfo.withArg(note.toJson() ?: "non")
+                        val route = Screens.NoteInfo.routeName+"/${false}/${note.toJson()}"
                         navController.navigate(route)
                     })
                 }

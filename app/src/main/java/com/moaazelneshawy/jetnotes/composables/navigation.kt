@@ -36,8 +36,12 @@ fun CAppNavigation(
             )
         }
         composable(
-            Screens.NoteInfo.routeName + "/{$IS_NEW}/{$NOTE_MODEL}",
+            Screens.NoteInfo.routeName + "/{$IS_NEW}?{$NOTE_MODEL}={${NOTE_MODEL}}",
             arguments = listOf(
+                navArgument(IS_NEW) {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
                 navArgument(NOTE_MODEL) {
                     type = NavType.StringType
                     nullable = true

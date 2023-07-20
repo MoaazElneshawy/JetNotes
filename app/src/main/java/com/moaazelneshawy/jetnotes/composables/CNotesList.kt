@@ -1,7 +1,6 @@
 package com.moaazelneshawy.jetnotes.composables
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,11 +25,14 @@ import com.moaazelneshawy.jetnotes.MainViewModel
 import com.moaazelneshawy.jetnotes.models.NoteModel
 import com.moaazelneshawy.jetnotes.routes.Screens
 import com.moaazelneshawy.jetnotes.toJson
-import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun CNotesScreen(navController: NavController, viewModel: MainViewModel,openNavigationDrawer:()->Unit) {
+fun CNotesScreen(
+    navController: NavController,
+    viewModel: MainViewModel,
+    openNavigationDrawer: () -> Unit
+) {
 
     val notes = viewModel.getAllNotes(false).collectAsState(initial = listOf())
     Scaffold(
@@ -41,7 +43,7 @@ fun CNotesScreen(navController: NavController, viewModel: MainViewModel,openNavi
             FloatingActionButton(
                 elevation = FloatingActionButtonDefaults.elevation(10.dp),
                 onClick = {
-                    navController.navigate(Screens.NoteInfo.withArg(true,"asd"))
+                    navController.navigate(Screens.NoteInfo.routeName + "/${true}")
                 }) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -70,7 +72,7 @@ fun CNotesScreen(navController: NavController, viewModel: MainViewModel,openNavi
                             NoteModel(it.title, it.content, it.color, isDeleted = true, id = it.id)
                         viewModel.updateNote(updatedNote)
                     }, modifier = Modifier.clickable {
-                        val route = Screens.NoteInfo.withArg(false,note.toJson() ?: "non")
+                        val route = Screens.NoteInfo.routeName + "/${false}/${note.toJson()}"
                         navController.navigate(route)
                     })
                 }
