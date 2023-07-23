@@ -1,7 +1,6 @@
 package com.moaazelneshawy.jetnotes.composables
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomDrawer
 import androidx.compose.material.BottomDrawerValue
 import androidx.compose.material.ExperimentalMaterialApi
@@ -21,6 +21,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.rememberBottomDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -43,8 +45,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun CNotesInfo(
-    viewModel: MainViewModel,
-    navigateBack: () -> Unit
+    viewModel: MainViewModel, navigateBack: () -> Unit
 ) {
     val currentNote = viewModel.selectedNote.observeAsState()
 
@@ -66,50 +67,47 @@ fun CNotesInfo(
 
     val bottomDrawerState = rememberBottomDrawerState(initialValue = BottomDrawerValue.Closed)
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            SaveNotesAppBar(
-                isNew = currentNote.value == null,
-                onNavigationIconClicked = navigateBack::invoke,
-                deleteIcon = if (currentNote.value?.isDeleted == true) R.drawable.baseline_restore_from_trash_24 else R.drawable.baseline_delete_24,
-                onSave = {
-                    if (currentNote.value == null) {
-                        val note = NoteModel(title, content, noteColor, canBeChecked)
-                        viewModel.insertNote(note)
-                    } else {
-                        val note = currentNote.value?.copy(
-                            title = title,
-                            content = content,
-                            color = noteColor,
-                            isChecked = if (canBeChecked) true else null,
-                            isDeleted = false
-                        )
-                        if (note != null) {
-                            viewModel.updateNote(note)
-                        }
+    val showConfirmDelete = rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val isDelete = currentNote.value?.isDeleted
+
+
+    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
+        SaveNotesAppBar(isNew = currentNote.value == null,
+            onNavigationIconClicked = navigateBack::invoke,
+            deleteIcon = if (currentNote.value?.isDeleted == true) R.drawable.baseline_restore_from_trash_24 else R.drawable.baseline_delete_24,
+            onSave = {
+                if (currentNote.value == null) {
+                    val note = NoteModel(title, content, noteColor, canBeChecked)
+                    viewModel.insertNote(note)
+                } else {
+                    val note = currentNote.value?.copy(
+                        title = title,
+                        content = content,
+                        color = noteColor,
+                        isChecked = if (canBeChecked) true else null,
+                        isDeleted = false
+                    )
+                    if (note != null) {
+                        viewModel.updateNote(note)
                     }
-                    navigateBack.invoke()
-                },
-                onChooseColor = { scope.launch { bottomDrawerState.open() } },
-                onDeleteNote = {
-                    currentNote.value?.let {
-                        val newNote = it.copy(isDeleted = currentNote.value?.isDeleted?.not())
-                        viewModel.updateNote(newNote)
-                    }
-                    navigateBack.invoke()
-                    viewModel.selectNote(null)
-                })
-        }
-    ) {
-        BottomDrawer(
-            drawerState = bottomDrawerState,
-            drawerContent = {
-                ColorsModels { selectedColor ->
-                    noteColor = selectedColor
-                    scope.launch { bottomDrawerState.close() }
                 }
-            }) {
+                navigateBack.invoke()
+            },
+            onChooseColor = { scope.launch { bottomDrawerState.open() } },
+            onDeleteNote = {
+                showConfirmDelete.value = true
+            })
+    }) {
+
+        BottomDrawer(drawerState = bottomDrawerState, drawerContent = {
+            ColorsModels { selectedColor ->
+                noteColor = selectedColor
+                scope.launch { bottomDrawerState.close() }
+            }
+        }) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Top,
@@ -141,14 +139,37 @@ fun CNotesInfo(
                 Spacer(modifier = Modifier.height(10.dp))
                 NoteColorModel(color = noteColor)
                 Spacer(modifier = Modifier.height(10.dp))
-                NoteCheckOption(
-                    isChecked = canBeChecked,
+                NoteCheckOption(isChecked = canBeChecked,
                     onCheckedChange = { canBeCheckedOffNewValue ->
                         canBeChecked = canBeCheckedOffNewValue
-                    }
-                )
+                    })
             }
         }
+        if (showConfirmDelete.value)
+            AlertDialog(onDismissRequest = {
+                showConfirmDelete.value = false
+            },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showConfirmDelete.value = false
+                        currentNote.value?.let {
+                            val newNote =
+                                it.copy(isDeleted = currentNote.value?.isDeleted?.not())
+                            viewModel.updateNote(newNote)
+                        }
+                        viewModel.selectNote(null)
+                        navigateBack.invoke()
+                    }) {
+                        Text(text = if (isDelete == true) "Restore" else "Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConfirmDelete.value = false }) {
+                        Text(text = "Cancel")
+                    }
+                },
+                title = { Text(text = if (isDelete == true) "Restore Note" else "Delete Note") },
+                text = { Text(text = "Are you sure you want to ${if (isDelete == true) "restore" else "delete"} note ?") })
     }
 }
 
@@ -161,8 +182,7 @@ fun SaveNotesAppBar(
     onChooseColor: () -> Unit,
     onDeleteNote: () -> Unit
 ) {
-    TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
+    TopAppBar(modifier = Modifier.fillMaxWidth(),
         backgroundColor = MaterialTheme.colors.primary,
         title = {
             Text(
@@ -194,17 +214,15 @@ fun SaveNotesAppBar(
                     tint = MaterialTheme.colors.onPrimary
                 )
             }
-            if (!isNew)
-                IconButton(onClick = { onDeleteNote.invoke() }) {
-                    Icon(
-                        painterResource(id = deleteIcon),
-                        contentDescription = "delete",
-                        tint = MaterialTheme.colors.onPrimary
-                    )
-                }
+            if (!isNew) IconButton(onClick = { onDeleteNote.invoke() }) {
+                Icon(
+                    painterResource(id = deleteIcon),
+                    contentDescription = "delete",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
 
-        }
-    )
+        })
 }
 
 @Composable
@@ -231,8 +249,7 @@ fun NoteColorModel(color: ColorModel?, modifier: Modifier = Modifier) {
 
 @Composable
 private fun NoteCheckOption(
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    isChecked: Boolean, onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         Modifier
