@@ -11,6 +11,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -23,7 +27,10 @@ import com.moaazelneshawy.jetnotes.models.ColorModel
 import com.moaazelneshawy.jetnotes.models.NoteModel
 
 @Composable
-fun CNote(modifier: Modifier = Modifier, note: NoteModel, onCheck: (NoteModel) -> Unit? = {}) {
+fun CNote(modifier: Modifier = Modifier, note: NoteModel, onCheck: (Boolean) -> Unit? = {}) {
+    var  isChecked by remember {
+        mutableStateOf(note.isChecked ?: false)
+    }
 
     Row(
         modifier = modifier
@@ -69,11 +76,12 @@ fun CNote(modifier: Modifier = Modifier, note: NoteModel, onCheck: (NoteModel) -
         }
         if (note.isChecked != null)
             Checkbox(
-                checked = note.isChecked,
-                onCheckedChange = { isChecked ->
-                    val newNote = note.copy(isChecked = isChecked)
-                    onCheck.invoke(newNote)
-                })
+                checked = isChecked,
+                onCheckedChange = {
+                    isChecked = it
+                    onCheck.invoke(it)
+                }
+            )
     }
 
 }

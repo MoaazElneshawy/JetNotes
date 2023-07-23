@@ -14,11 +14,6 @@ class NotesRepoImpl @Inject constructor(val dao: NotesDao) : NotesRepository {
     override suspend fun insertNote(nodeModel: NoteModel) {
         dao.addNewNote(nodeModel)
     }
-
-    override suspend fun deleteNote(nodeModel: NoteModel) {
-        dao.deleteNote(nodeModel)
-    }
-
     override suspend fun updateNote(nodeModel: NoteModel) {
         dao.updateNote(nodeModel)
     }

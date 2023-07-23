@@ -9,6 +9,17 @@ data class ColorModel(
 ) {
     companion object {
         val YELLOW = ColorModel("Yellow", Color.YELLOW)
+        val COLORS = listOf(
+            ColorModel.YELLOW,
+            ColorModel("White", Color.WHITE),
+            ColorModel("Black", Color.BLACK),
+            ColorModel("Blue", Color.BLUE),
+            ColorModel("Red", Color.RED),
+            ColorModel("Cyan", Color.CYAN),
+            ColorModel("Magenta", Color.MAGENTA),
+            ColorModel("Gray", Color.GRAY),
+            ColorModel("Green", Color.GREEN),
+        )
     }
 }
 

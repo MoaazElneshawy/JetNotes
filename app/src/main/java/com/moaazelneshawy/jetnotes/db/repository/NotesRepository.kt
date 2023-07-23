@@ -7,7 +7,6 @@ interface NotesRepository {
 
     fun getAllNotes(isDeleted:Boolean): Flow<List<NoteModel>>
     suspend fun insertNote(nodeModel: NoteModel)
-    suspend fun deleteNote(nodeModel: NoteModel)
     suspend fun updateNote(nodeModel: NoteModel)
 
 }

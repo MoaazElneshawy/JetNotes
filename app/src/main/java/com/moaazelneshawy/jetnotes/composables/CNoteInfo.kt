@@ -2,7 +2,7 @@ package com.moaazelneshawy.jetnotes.composables
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.foundation.clickable
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.BottomDrawer
+import androidx.compose.material.BottomDrawerValue
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -23,98 +26,128 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.rememberBottomDrawerState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.moaazelneshawy.jetnotes.MainViewModel
 import com.moaazelneshawy.jetnotes.R
-import com.moaazelneshawy.jetnotes.fromJson
 import com.moaazelneshawy.jetnotes.models.ColorModel
 import com.moaazelneshawy.jetnotes.models.NoteModel
+import kotlinx.coroutines.launch
 
+@ExperimentalMaterialApi
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun CNotesInfo(
-    isNew: Boolean,
-    noteModel: String? = null,
     viewModel: MainViewModel,
     navigateBack: () -> Unit
 ) {
-    var currentNote = noteModel?.fromJson<NoteModel>(NoteModel::class.java)
-    val canBeChecked: Boolean = currentNote?.isChecked != null
+    val currentNote = viewModel.selectedNote.observeAsState()
+
+    var canBeChecked: Boolean by remember {
+        mutableStateOf(currentNote.value?.isChecked != null)
+    }
 
     var title by remember {
-        mutableStateOf(currentNote?.title ?: "")
+        mutableStateOf(currentNote.value?.title ?: "")
     }
     var content by remember {
-        mutableStateOf(currentNote?.content ?: "")
+        mutableStateOf(currentNote.value?.content ?: "")
     }
+    var noteColor by remember {
+        mutableStateOf(currentNote.value?.color ?: ColorModel.YELLOW)
+    }
+
+    val scope = rememberCoroutineScope()
+
+    val bottomDrawerState = rememberBottomDrawerState(initialValue = BottomDrawerValue.Closed)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             SaveNotesAppBar(
-                isNew = isNew,
+                isNew = currentNote.value == null,
                 onNavigationIconClicked = navigateBack::invoke,
+                deleteIcon = if (currentNote.value?.isDeleted == true) R.drawable.baseline_restore_from_trash_24 else R.drawable.baseline_delete_24,
                 onSave = {
-                    Log.e("CNotesInfo: ", "$currentNote")
-                    val note = NoteModel(title, content, ColorModel("Green", Color.Green.toArgb()))
-                    viewModel.insertNote(note)
+                    if (currentNote.value == null) {
+                        val note = NoteModel(title, content, noteColor, canBeChecked)
+                        viewModel.insertNote(note)
+                    } else {
+                        val note = currentNote.value?.copy(
+                            title = title,
+                            content = content,
+                            color = noteColor,
+                            isChecked = if (canBeChecked) true else null,
+                            isDeleted = false
+                        )
+                        if (note != null) {
+                            viewModel.updateNote(note)
+                        }
+                    }
                     navigateBack.invoke()
-
                 },
-                onChooseColor = { },
+                onChooseColor = { scope.launch { bottomDrawerState.open() } },
                 onDeleteNote = {
-                    currentNote?.let { viewModel.deleteNote(it) }
+                    currentNote.value?.let {
+                        val newNote = it.copy(isDeleted = currentNote.value?.isDeleted?.not())
+                        viewModel.updateNote(newNote)
+                    }
+                    navigateBack.invoke()
+                    viewModel.selectNote(null)
                 })
         }
     ) {
-        Column(
-            Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
-        ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Title") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = MaterialTheme.colors.surface
-                )
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text("Content") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = MaterialTheme.colors.surface
-                )
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            NoteColorModel(color = currentNote?.color, modifier = Modifier.clickable {
-
-            })
-            Spacer(modifier = Modifier.height(10.dp))
-            NoteCheckOption(
-                isChecked = canBeChecked,
-                onCheckedChange = { canBeCheckedOffNewValue ->
-                    val isChecked: Boolean? = if (canBeCheckedOffNewValue)
-                        false else null
-                    currentNote = currentNote?.copy(isChecked = isChecked)
+        BottomDrawer(
+            drawerState = bottomDrawerState,
+            drawerContent = {
+                ColorsModels { selectedColor ->
+                    noteColor = selectedColor
+                    scope.launch { bottomDrawerState.close() }
                 }
-            )
+            }) {
+            Column(
+                Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = MaterialTheme.colors.surface
+                    )
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = { content = it },
+                    label = { Text("Content") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = MaterialTheme.colors.surface
+                    )
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                NoteColorModel(color = noteColor)
+                Spacer(modifier = Modifier.height(10.dp))
+                NoteCheckOption(
+                    isChecked = canBeChecked,
+                    onCheckedChange = { canBeCheckedOffNewValue ->
+                        canBeChecked = canBeCheckedOffNewValue
+                    }
+                )
+            }
         }
     }
 }
@@ -123,6 +156,7 @@ fun CNotesInfo(
 fun SaveNotesAppBar(
     isNew: Boolean,
     onNavigationIconClicked: () -> Unit,
+    @DrawableRes deleteIcon: Int,
     onSave: () -> Unit,
     onChooseColor: () -> Unit,
     onDeleteNote: () -> Unit
@@ -163,7 +197,7 @@ fun SaveNotesAppBar(
             if (!isNew)
                 IconButton(onClick = { onDeleteNote.invoke() }) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        painterResource(id = deleteIcon),
                         contentDescription = "delete",
                         tint = MaterialTheme.colors.onPrimary
                     )
@@ -174,7 +208,7 @@ fun SaveNotesAppBar(
 }
 
 @Composable
-fun NoteColorModel(color: ColorModel?, modifier: Modifier) {
+fun NoteColorModel(color: ColorModel?, modifier: Modifier = Modifier) {
     Row(
         modifier
             .padding(8.dp)

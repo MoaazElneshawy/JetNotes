@@ -1,5 +1,7 @@
 package com.moaazelneshawy.jetnotes
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moaazelneshawy.jetnotes.db.repository.NotesRepository
@@ -11,17 +13,19 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(val repo: NotesRepository) : ViewModel() {
 
-    fun getAllNotes(isDeleted:Boolean) = repo.getAllNotes(isDeleted)
+    private val _selectedNote = MutableLiveData<NoteModel>(null)
+    val selectedNote: LiveData<NoteModel>
+        get() = _selectedNote
+
+    fun selectNote(model: NoteModel?) {
+        _selectedNote.postValue(model)
+    }
+
+    fun getAllNotes(isDeleted: Boolean) = repo.getAllNotes(isDeleted)
 
     fun insertNote(noteModel: NoteModel) {
         viewModelScope.launch {
             repo.insertNote(noteModel)
-        }
-    }
-
-    fun deleteNote(noteModel: NoteModel) {
-        viewModelScope.launch {
-            repo.deleteNote(noteModel)
         }
     }
 

@@ -19,9 +19,6 @@ interface NotesDao {
     @Insert
     suspend fun addNewNote(noteModel: NoteModel)
 
-    @Delete
-    suspend fun deleteNote(noteModel: NoteModel)
-
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateNote(noteModel: NoteModel)
 }
