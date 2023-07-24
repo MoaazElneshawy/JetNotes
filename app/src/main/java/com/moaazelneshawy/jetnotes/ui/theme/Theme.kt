@@ -8,6 +8,9 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -37,7 +40,8 @@ private val LightColorPalette = lightColors(
 
 @Composable
 fun JetNotesTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean =
+        isSystemInDarkTheme() || JetNotesThemeSettings.isDarkThemeEnabled,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
@@ -65,4 +69,8 @@ fun JetNotesTheme(
         typography = Typography,
         content = content
     )
+}
+
+object JetNotesThemeSettings {
+    var isDarkThemeEnabled by mutableStateOf(false)
 }

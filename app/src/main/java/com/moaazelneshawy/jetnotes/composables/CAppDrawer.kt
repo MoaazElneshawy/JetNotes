@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moaazelneshawy.jetnotes.ui.theme.JetNotesThemeSettings
 
 // header
 @Composable
@@ -111,6 +112,8 @@ fun AppDarkTheme() {
                 .weight(1f)
                 .padding(end = 10.dp)
         )
-        Switch(checked = true, onCheckedChange = {})
+        Switch(
+            checked = JetNotesThemeSettings.isDarkThemeEnabled,
+            onCheckedChange = { JetNotesThemeSettings.isDarkThemeEnabled = it })
     }
 }
